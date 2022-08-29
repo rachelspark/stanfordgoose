@@ -19,4 +19,4 @@ COPY --from=redis-stack /opt/redis-stack/lib/rejson.so /opt/redis-stack/lib/rejs
 COPY --from=builder /go/app/stanford-goose /usr/bin
 COPY --from=frontend /app/frontend/dist static
 ENTRYPOINT [ "stanford-goose" ]
-CMD [ "server", "-static", "static", "-data", "https://s3.amazonaws.com/stanford-goose/courses.json" ]
+CMD [ "server", "-static", "static", "-data", "https://stanford-goose.s3.us-west-1.amazonaws.com/courses.json" ]

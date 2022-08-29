@@ -2,9 +2,11 @@ package datasource
 
 import (
 	"log"
+	"sort"
 	"sync"
 
 	"github.com/schollz/progressbar/v3"
+	"golang.org/x/exp/slices"
 )
 
 // Download a paginated set of courses over the network, with specified concurrency.
@@ -48,12 +50,12 @@ func paginatedDownload(
 	wg.Wait()
 
 	initialLen := len(courses)
-	// sort.Slice(courses, func(i, j int) bool {
-	// 	return courses[i].Id < courses[j].Id
-	// })
-	// courses = slices.CompactFunc(courses, func(a, b Course) bool {
-	// 	return a.Id == b.Id
-	// })
+	sort.Slice(courses, func(i, j int) bool {
+		return courses[i].Id < courses[j].Id
+	})
+	courses = slices.CompactFunc(courses, func(a, b Course) bool {
+		return a.Id == b.Id
+	})
 
 	log.Printf("read %v out of %v total courses (%v before compaction)",
 		len(courses), totalCount, initialLen)

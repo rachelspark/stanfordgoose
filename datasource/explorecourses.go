@@ -138,7 +138,7 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 		id := xid.New().String()
 
 		courses = append(courses, Course{
-			ID:                id,
+			Id:                id,
 			CourseDept:        dept,
 			CourseNumber:      number,
 			CourseTitle:       title,

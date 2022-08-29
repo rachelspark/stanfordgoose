@@ -49,8 +49,8 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 		} else {
 			dept = parsed[0]
 		}
-		title := element.ChildText("h2 > span.courseTitle")
-		description := element.ChildText("div.courseDescription")
+		title := TrimAllWhiteSpaces(element.ChildText("h2 > span.courseTitle"))
+		description := TrimAllWhiteSpaces(element.ChildText("div.courseDescription"))
 
 		// course attributes
 		element.ForEach("div.courseAttributes", func(_ int, a *colly.HTMLElement) {
@@ -60,9 +60,10 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 					name := TrimAllWhiteSpaces(instructor.Text)
 
 					var isPI string
-					splitTag := strings.Split(name, "(")
+					splitTag := strings.Split(name, " (")
 					if len(splitTag) > 1 {
-						if strings.Contains(splitTag[0], "PI") {
+						name = splitTag[0]
+						if strings.Contains(splitTag[1], "PI") {
 							isPI = "Y"
 						} else {
 							isPI = "N"

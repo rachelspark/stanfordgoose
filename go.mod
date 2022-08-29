@@ -34,6 +34,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/rivo/uniseg v0.3.4 // indirect
+	github.com/rs/xid v1.4.0
 	github.com/spf13/cast v1.5.0 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect

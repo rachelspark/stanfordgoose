@@ -2,7 +2,7 @@ package datasource
 
 // JSON object that specifies a course row.
 type Course struct {
-	Id string `json:id`
+	Id string `json:"id"`
 
 	// CourseDept is the abbreviated course department code (ME, CS, AA)
 	CourseDept string `json:"courseDept"`

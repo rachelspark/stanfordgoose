@@ -30,9 +30,10 @@ type TextSearch struct {
 
 func (ts *TextSearch) init(data []Course) error {
 	ts.rdb.Do(ts.ctx,
-		"FT.CREATE", "courses", "ON", "JSON", "PREFIX", "1", "course:", "SCHEMA",
-		"$.courseNumber", "AS", "number", "TEXT",
-		"$.courseTitle", "AS", "title", "TEXT",
+		"FT.CREATE", "courses", "ON", "JSON", "PREFIX", "1", "course:", "NOOFFSETS", "SCHEMA",
+		"$.courseDept", "AS", "dept", "TEXT", "NOSTEM", "WEIGHT", "2",
+		"$.courseNumber", "AS", "number", "TEXT", "WEIGHT", "2",
+		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "2",
 		"$.courseDescription", "AS", "description", "TEXT",
 		"$.terms", "AS", "terms", "TAG",
 		"$.courseInstructors.*.name", "AS", "instructor", "TEXT",
@@ -42,7 +43,7 @@ func (ts *TextSearch) init(data []Course) error {
 	pipe := ts.rdb.Pipeline()
 	ts.vals = make(map[string]Course)
 	for i, course := range data {
-		id := course["courseNumber"].(string)
+		id := course["id"].(string)
 		s, err := json.Marshal(course)
 		if err != nil {
 			return fmt.Errorf("failed to marshal course %v: %v", id, err)
@@ -150,7 +151,7 @@ func Run(uri string, static string, local bool) {
 	log.Printf("Indexing course data...")
 	start := time.Now()
 	if err := ts.init(data); err != nil {
-		log.Fatalf("faild to index data: %v", err)
+		log.Fatalf("failed to index data: %v", err)
 	}
 	log.Printf("Finished indexing data in %v", time.Since(start))
 

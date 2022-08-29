@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gocolly/colly"
+	"github.com/rs/xid"
 )
 
 const endpoint = "https://explorecourses.stanford.edu/"
@@ -32,15 +33,24 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 	})
 
 	collector.OnHTML("div.courseInfo", func(element *colly.HTMLElement) {
-		number := element.ChildText("h2 > span.courseNumber")
-		title := element.ChildText("h2 > span.courseTitle")
-		description := element.ChildText("div.courseDescription")
+		var dept string
+		var number string
 		var terms string
 		var units string
 		var lastOffered string
 		var instructors []Instructor
 		var ugReqs string
 		var schedules []ClassSchedule
+
+		parsed := parseCourseNumber(element.ChildText("h2 > span.courseNumber"))
+		if len(parsed) > 1 {
+			dept = parsed[0]
+			number = parsed[1]
+		} else {
+			dept = parsed[0]
+		}
+		title := element.ChildText("h2 > span.courseTitle")
+		description := element.ChildText("div.courseDescription")
 
 		// course attributes
 		element.ForEach("div.courseAttributes", func(_ int, a *colly.HTMLElement) {
@@ -124,7 +134,11 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 
 		})
 
+		id := xid.New().String()
+
 		courses = append(courses, Course{
+			ID:                id,
+			CourseDept:        dept,
 			CourseNumber:      number,
 			CourseTitle:       title,
 			CourseDescription: description,
@@ -157,6 +171,13 @@ func TrimWhiteSpaces(str string) string {
 func TrimAllWhiteSpaces(str string) string {
 	trimWhiteSpace := strings.NewReplacer("\n", "", "\t", "", "  ", "")
 	return trimWhiteSpace.Replace(str)
+}
+
+func parseCourseNumber(str string) []string {
+	trimColon := strings.NewReplacer(":", "")
+	trimmed := trimColon.Replace(str)
+	splitNumber := strings.Split(trimmed, " ")
+	return splitNumber
 }
 
 func getDepts() []string {

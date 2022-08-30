@@ -33,9 +33,9 @@ type TextSearch struct {
 func (ts *TextSearch) init(data []datasource.Course) error {
 	ts.rdb.Do(ts.ctx,
 		"FT.CREATE", "courses", "ON", "JSON", "PREFIX", "1", "course:", "NOOFFSETS", "SCHEMA",
-		"$.courseDept", "AS", "dept", "TEXT", "NOSTEM", "WEIGHT", "2",
-		"$.courseNumber", "AS", "number", "TEXT", "NOSTEM", "WEIGHT", "2", "SORTABLE",
-		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "5",
+		"$.courseDept", "AS", "dept", "TEXT", "NOSTEM", "WEIGHT", "6",
+		"$.courseNumber", "AS", "number", "TEXT", "NOSTEM", "WEIGHT", "6", "SORTABLE",
+		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "4",
 		"$.courseDescription", "AS", "description", "TEXT",
 		"$.terms", "AS", "terms", "TAG",
 		"$.instructors[0].name", "AS", "instructor1", "TEXT", "NOSTEM", "PHONETIC", "dm:en",

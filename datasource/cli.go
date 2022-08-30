@@ -20,9 +20,6 @@ func paginatedDownload(
 	if err != nil {
 		log.Fatalf("failed to get courses: %v", err)
 	}
-	// if totalCount == 0 {
-	// 	log.Fatalf("no courses found")
-	// }
 
 	var mu sync.Mutex // Protects the courses list.
 	var courses []Course

@@ -1,10 +1,12 @@
-# fly.toml file generated for stanford-goose on 2022-08-28T21:03:37-07:00
+# fly.toml file generated for stanfordgoose on 2022-08-30T01:54:46-07:00
 
-app = "stanford-goose"
-
+app = "stanfordgoose"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
+
+[env]
+  SWAP = "1"
 
 [experimental]
   allowed_public_ports = []
@@ -16,9 +18,9 @@ processes = []
   protocol = "tcp"
 
   [[services.ports]]
+    force_https = true
     handlers = ["http"]
     port = 80
-    force_https = true
 
   [[services.ports]]
     handlers = ["tls", "http"]

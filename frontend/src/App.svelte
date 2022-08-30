@@ -2,11 +2,24 @@
   import Course from "./lib/Course.svelte";
   import { createSearcher, normalizeText } from "./lib/search";
 
-  let query: string = "";
+  function encodeQueryHash(query: string): string {
+    return "#" + encodeURIComponent(query).replaceAll("%20", "+");
+  }
 
-  const { count, courses, error, search } = createSearcher();
+  function decodeQueryHash(hash: string): string {
+    return decodeURIComponent(hash.slice(1).replaceAll("+", "%20"));
+  }
+
+  let query: string = location.hash ? decodeQueryHash(location.hash) : "";
+  $: {
+    const newUrl = query
+      ? encodeQueryHash(query)
+      : location.pathname + location.search;
+    history.replaceState(null, "", newUrl);
+  }
+
+  const { data, error, search } = createSearcher();
   $: search(normalizeText(query));
-  $: console.log(normalizeText(query));
 </script>
 
 <main class="p-4">
@@ -27,14 +40,20 @@
   </p>
 
   {#if $error !== null}
-    <p class="text-red-500">Error: {$error}</p>
-  {:else if $courses}
-    <p class="mb-4">received {$count} result(s)</p>
+  <p class="text-red-500 mb-4">
+    Error searching for <code>{normalizeText(query)}</code>: {$error}
+  </p>
+{/if}
+{#if query && $data}
+<p class="mb-4">
+  Found {$data.count} results
+  <span class="text-gray-500">({($data.time * 1000).toFixed(2)} ms)</span>
+</p>
 
-    <div class="space-y-4">
-      {#each $courses as course (course.id)}
-        <Course data={course} />
-      {/each}
-    </div>
-  {/if}
+<div class="space-y-4">
+  {#each $data.courses ?? [] as course (course.id)}
+    <Course data={course} />
+  {/each}
+</div>
+{/if}
 </main>

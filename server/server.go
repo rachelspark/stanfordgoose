@@ -32,11 +32,13 @@ func (ts *TextSearch) init(data []Course) error {
 	ts.rdb.Do(ts.ctx,
 		"FT.CREATE", "courses", "ON", "JSON", "PREFIX", "1", "course:", "NOOFFSETS", "SCHEMA",
 		"$.courseDept", "AS", "dept", "TEXT", "NOSTEM", "WEIGHT", "2",
-		"$.courseNumber", "AS", "number", "TEXT", "WEIGHT", "2",
-		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "2",
+		"$.courseNumber", "AS", "number", "TEXT", "NOSTEM", "WEIGHT", "2", "SORTABLE",
+		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "5",
 		"$.courseDescription", "AS", "description", "TEXT",
 		"$.terms", "AS", "terms", "TAG",
-		"$.courseInstructors.*.name", "AS", "instructor", "TEXT",
+		"$.instructors[0].name", "AS", "instructor1", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.instructors[1].name", "AS", "instructor2", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.instructors[2].name", "AS", "instructor3", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
 		"$.ugReqs", "AS", "ugReqs", "TAG",
 	)
 

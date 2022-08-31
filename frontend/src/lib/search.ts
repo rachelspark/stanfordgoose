@@ -2,19 +2,21 @@ import { writable, type Readable } from "svelte/store";
 
 export type CourseData = {
   id: string;
-  courseDept: string;
+  dept: string;
+  deptLongname: string
   courseNumber: string;
   courseTitle: string;
   courseDescription: string;
-  terms: string;
+  level: string;
+  terms: string[];
   units: string;
   lastOffered: string
   instructors: Array<{
     name: string;
     isPI: string;
-    profileURL: string;
+    profileUrl: string;
   }>;
-  ugReqs: string;
+  ugReqs: string[];
 };
 
 export type Searcher = {

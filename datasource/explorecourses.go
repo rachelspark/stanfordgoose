@@ -12,6 +12,8 @@ import (
 const endpoint = "https://explorecourses.stanford.edu/"
 const dept_endpoint = endpoint + "?view=xml-20140630"
 
+var globalDeptMap = make(map[string]string)
+
 func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 	courseEndpoint := endpoint + search
 	var count int64
@@ -35,17 +37,19 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 	collector.OnHTML("div.courseInfo", func(element *colly.HTMLElement) {
 		var dept string
 		var number string
-		var terms string
+		var level string
+		var terms []string
 		var units string
 		var lastOffered string
 		var instructors []Instructor
-		var ugReqs string
+		var ugReqs []string
 		var schedules []ClassSchedule
 
 		parsed := parseCourseNumber(element.ChildText("h2 > span.courseNumber"))
 		if len(parsed) > 1 {
 			dept = parsed[0]
 			number = parsed[1]
+			level = getLevel(number)
 		} else {
 			dept = parsed[0]
 		}
@@ -77,6 +81,10 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 				})
 			} else if strings.Contains(a.Text, "Last offered") {
 				lastOffered = TrimAllWhiteSpaces(a.Text)
+				if strings.Contains(lastOffered, "UG Reqs: ") {
+					parts := strings.Split(lastOffered, "UG Reqs: ")
+					ugReqs = sanitizeUGReqs(parts[1])
+				}
 			} else {
 				attributes := strings.Split(a.Text, "| ")
 				m := make(map[string]string)
@@ -90,13 +98,13 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 					}
 				}
 				if t, found := m["Terms"]; found {
-					terms = t
+					terms = strings.Split(t, ", ")
 				}
 				if u, found := m["Units"]; found {
 					units = u
 				}
 				if ug, found := m["UG Reqs"]; found {
-					ugReqs = ug
+					ugReqs = sanitizeUGReqs(ug)
 				}
 			}
 		})
@@ -115,7 +123,7 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 			sectionDetails := strings.FieldsFunc(TrimWhiteSpaces(section.ChildText("li.sectionDetails")), f)
 			for _, s := range sectionDetails {
 				s = strings.TrimSpace(s)
-				if s == "ISF" || s == "LEC" || s == "SEM" || s == "LBS" || s == "SEC" || s == "ACT" {
+				if s == "ISF" || s == "LEC" || s == "SEM" || s == "LBS" || s == "SEC" || s == "ACT" || s == "DIS" || s == "PRC" || s == "COL" {
 					sectionType = s
 				} else if strings.Contains(s, "Notes:") {
 					split := strings.Split(s, "Notes:")
@@ -139,10 +147,12 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 
 		courses = append(courses, Course{
 			Id:                id,
-			CourseDept:        dept,
+			Dept:              dept,
+			DeptLongname:      globalDeptMap[dept],
 			CourseNumber:      number,
 			CourseTitle:       title,
 			CourseDescription: description,
+			Level:             level,
 			Terms:             terms,
 			Units:             units,
 			LastOffered:       lastOffered,
@@ -181,8 +191,30 @@ func parseCourseNumber(str string) []string {
 	return splitNumber
 }
 
-func getDepts() []string {
-	var depts []string
+func sanitizeUGReqs(str string) []string {
+	removedGER := strings.Replace(str, "GER:", "", 1)
+	return strings.Split(removedGER, ", ")
+}
+
+func getLevel(courseNumber string) string {
+	num, err := strconv.Atoi(courseNumber)
+	if err != nil {
+		return ""
+	}
+
+	if num < 100 {
+		return "Intro"
+	} else if num < 200 {
+		return "Undergrad"
+	} else if num < 300 {
+		return "Advanced"
+	} else {
+		return "Graduate"
+	}
+}
+
+func getDepts() map[string]string {
+	depts := make(map[string]string)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("explorecourses.stanford.edu"),
@@ -193,13 +225,14 @@ func getDepts() []string {
 	})
 
 	collector.OnXML("//schools/school/*", func(e *colly.XMLElement) {
+		longname := e.ChildText("//@longname")
 		name := e.ChildText("//@name")
-		depts = append(depts, name)
-
+		depts[name] = longname
 	})
 
 	collector.Visit(dept_endpoint)
 
+	globalDeptMap = depts
 	return depts
 }
 

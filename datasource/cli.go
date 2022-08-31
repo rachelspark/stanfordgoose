@@ -66,8 +66,8 @@ func DownloadCourses() []Course {
 	depts := getDepts()
 	var courses []Course
 
-	for _, dept := range depts {
-		courses = append(courses, paginatedDownload(ECGetCoursesByDepartment, 10, 32, dept)...)
+	for name := range depts {
+		courses = append(courses, paginatedDownload(ECGetCoursesByDepartment, 10, 32, name)...)
 	}
 
 	return courses

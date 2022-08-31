@@ -6,7 +6,7 @@
   </script>
   
   <a
-    class="text-red-500 hover:underline"
+    class="text-rose-600 hover:underline"
     href={encodeQueryHash(value)}
     on:click|preventDefault={() => (query = value)}>{value}</a
   >

@@ -37,7 +37,6 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 	collector.OnHTML("div.courseInfo", func(element *colly.HTMLElement) {
 		var dept string
 		var number string
-		var level string
 		var terms []string
 		var units string
 		var lastOffered string
@@ -49,7 +48,6 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 		if len(parsed) > 1 {
 			dept = parsed[0]
 			number = parsed[1]
-			level = getLevel(number)
 		} else {
 			dept = parsed[0]
 		}
@@ -152,7 +150,6 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 			CourseNumber:      number,
 			CourseTitle:       title,
 			CourseDescription: description,
-			Level:             level,
 			Terms:             terms,
 			Units:             units,
 			LastOffered:       lastOffered,
@@ -194,23 +191,6 @@ func parseCourseNumber(str string) []string {
 func sanitizeUGReqs(str string) []string {
 	removedGER := strings.Replace(str, "GER:", "", 1)
 	return strings.Split(removedGER, ", ")
-}
-
-func getLevel(courseNumber string) string {
-	num, err := strconv.Atoi(courseNumber)
-	if err != nil {
-		return ""
-	}
-
-	if num < 100 {
-		return "Intro"
-	} else if num < 200 {
-		return "Undergrad"
-	} else if num < 300 {
-		return "Advanced"
-	} else {
-		return "Graduate"
-	}
 }
 
 func getDepts() map[string]string {

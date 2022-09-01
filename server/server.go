@@ -32,15 +32,17 @@ type TextSearch struct {
 
 func (ts *TextSearch) init(data []datasource.Course) error {
 	ts.rdb.Do(ts.ctx,
-		"FT.CREATE", "courses", "ON", "JSON", "PREFIX", "1", "course:", "NOOFFSETS", "SCHEMA",
-		"$.dept", "AS", "dept", "TEXT", "NOSTEM", "WEIGHT", "6",
+		"FT.CREATE", "courses", "ON", "JSON", "PREFIX", "1", "course:", "SCHEMA",
+		"$.dept", "AS", "dept", "TEXT", "NOSTEM", "WEIGHT", "4",
 		"$.deptLongname", "AS", "deptLongname", "TEXT", "NOSTEM", "WEIGHT", "2",
-		"$.courseNumber", "AS", "number", "TEXT", "NOSTEM", "WEIGHT", "6", "SORTABLE",
-		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "4",
+		"$.courseNumber", "AS", "number", "TEXT", "NOSTEM", "WEIGHT", "4", "SORTABLE",
+		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "2",
 		"$.courseDescription", "AS", "description", "TEXT",
-		"$.instructors[0:].name", "AS", "instructor", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
-		"$.terms[0:]", "AS", "quarters", "TAG",
-		"$.ugReqs[0:]", "AS", "UGReqs", "TAG",
+		"$.instructors[0].name", "AS", "instructor1", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.instructors[1].name", "AS", "instructor2", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.instructors[2].name", "AS", "instructor3", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.terms[*]", "AS", "terms", "TAG",
+		"$.ugReqs[*]", "AS", "ugReqs", "TAG",
 	)
 
 	pipe := ts.rdb.Pipeline()

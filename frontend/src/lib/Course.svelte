@@ -12,6 +12,21 @@ import type { CourseData } from "./search";
       "lastOffered" : "lightgray"
     }
 
+    // function getInstructors(data: CourseData) {
+    //   let instructors = data.instructors;
+    //   let instructorsToShow = [];
+    //   let i = 0, j = 0;
+
+    //   while (i < 3) {
+    //     if (instructors[j].name == "Instructors:" || instructors[j].profileUrl == "#" || instructors[j].isPI != "Y") {
+    //       j++;
+    //     }
+    //     instructorsToShow[i] = instructors[j];
+    //     j++;
+    //     i++;
+    //   }
+    //   return instructorsToShow;
+    // }
   </script>
   
   <div>
@@ -35,13 +50,12 @@ import type { CourseData } from "./search";
     </h6>
       </div>
   </div>
-    <p class="prof-links">
+    <p class="instructors">
       {#if data.instructors}
-      {#each data.instructors as instructor, i}
-      <a target="_blank"
-        href= {instructor.profileUrl}>{instructor.name}</a
-      >{#if i < data.instructors.length - 1}{", "}{/if}
-      {/each}
+        {#each data.instructors.slice(0, 3) as instructor, i}
+              <a target="_blank" href= {instructor.profileUrl}>{instructor.name}</a>
+              {#if i == 2 && data.instructors.length > 3} and others{:else}{"  "}{/if}
+        {/each}
       {/if}
     </p>
     <p class="text-xs font-light mb-1">
@@ -80,7 +94,11 @@ import type { CourseData } from "./search";
     .ext-links a {
       @apply text-gray-500 text-sm hover:underline;
     }
-    .prof-links a {
-      @apply text-black text-sm mb-1 hover:underline;
+    .instructors {
+      @apply text-black text-sm mb-1
     }
+    .instructors a {
+      @apply hover:underline;
+    }
+
   </style>

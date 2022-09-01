@@ -16,8 +16,6 @@ type Course struct {
 
 	CourseDescription string `json:"courseDescription"`
 
-	Level string `json:"level"`
-
 	Terms []string `json:"terms"`
 
 	Units string `json:"units"`

@@ -64,7 +64,7 @@
     {#if !landing}
       <div class="space-y-2 mb-3 text-sm text-zinc-600">
         <p>
-          Try words, phrases, titles, subjects, course numbers, and instructor
+          Try words, phrases, titles, subjects, course numbers, and instructor last
           names. You can also look for exact textual phrases (like
           <QueryLink bind:query value={`"creative process"`} />) and prefix
           matches (such as
@@ -73,7 +73,7 @@
         <p>
           Filter by specific attributes like
           <QueryLink bind:query value={`@dept:CS`} />, 
-          <QueryLink bind:query value={`@UGReqs:{WAY-ER}`} />,
+          <QueryLink bind:query value={`@ugReqs:{WAY-ER}`} />,
           <QueryLink bind:query value={`@terms:{Aut}`} />
         </p>
       </div>

@@ -7,20 +7,31 @@ export type CourseData = {
   courseNumber: string;
   courseTitle: string;
   courseDescription: string;
-  level: string;
   terms: string[];
   units: string;
   lastOffered: string
-  instructors: Array<{
+  instructors: {
     name: string;
     isPI: string;
     profileUrl: string;
-  }>;
+  }[];
   ugReqs: string[];
+  schedule: {
+    term: string;
+    classType: string;
+    termInstructors: string;
+    notes: string;
+  }[];
+};
+
+type SearchResult = {
+  count: number;
+  courses: CourseData[];
+  time: number;
 };
 
 export type Searcher = {
-    data: Readable<any>;
+    data: Readable<SearchResult>;
     error: Readable<string | null>;
     search: (query: string) => void;
 };
@@ -29,7 +40,7 @@ export function createSearcher(): Searcher {
     let abort: AbortController | null = null;
     let lastQuery: string | null = null;
   
-    const data = writable<any>(undefined);
+    const data = writable<SearchResult>(undefined);
     const error = writable<string | null>(null);
     const search = async (query: string) => {
       if (query === lastQuery) return;
@@ -43,7 +54,7 @@ export function createSearcher(): Searcher {
         });
         if (!resp.ok) {
           const obj = await resp.json();
-          error.set(obj.error);
+          error.set(`Error searching for ${query}: ${obj.error}`);
         } else {
           const obj = await resp.json();
           data.set(obj);
@@ -63,6 +74,10 @@ export function createSearcher(): Searcher {
 
 /** Apply some transformations to a query to make it more useful by default. */
 export function normalizeText(query: string): string {
+  query = query.replaceAll("-", " "); // dash syntax is too confusing for users
+  query = query.replaceAll(/[–—…«»‘’]/g, " "); // trim special unicode punctuation
+  query = query.replaceAll(/[“”]/g, '"'); // make smart quotes less smart
+
   if (query.length >= 2 && query.slice(-2).match(/\w{2}/)) {
     const i = /\w+$/.exec(query).index;
     const partial = query.substring(i);

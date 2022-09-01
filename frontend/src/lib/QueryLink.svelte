@@ -3,7 +3,8 @@
   
     export let query: string; // for binding
     export let value: string;
-  </script>
+  
+</script>
   
   <a
     class="text-rose-600 hover:underline"

@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,8 @@ import (
 
 const endpoint = "https://explorecourses.stanford.edu/"
 const dept_endpoint = endpoint + "?view=xml-20140630"
+
+var globalDeptMap = make(map[string]string)
 
 func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 	courseEndpoint := endpoint + search
@@ -34,35 +37,45 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 
 	collector.OnHTML("div.courseInfo", func(element *colly.HTMLElement) {
 		var dept string
-		var number string
-		var terms string
+		var terms []string
+		var number uint32
 		var units string
+		var level string
 		var lastOffered string
 		var instructors []Instructor
-		var ugReqs string
+		var ugReqs []string
 		var schedules []ClassSchedule
 
-		parsed := parseCourseNumber(element.ChildText("h2 > span.courseNumber"))
+		both := strings.ReplaceAll(element.ChildText("h2 > span.courseNumber"), ":", "")
+		parsed := strings.Split(both, " ")
 		if len(parsed) > 1 {
 			dept = parsed[0]
-			number = parsed[1]
+			numberString := trimChars(parsed[1])
+			num, err := strconv.ParseInt(numberString, 10, 32)
+			if err != nil {
+				number = 0
+			} else {
+				number = uint32(num)
+			}
+			level = getLevel(number)
 		} else {
 			dept = parsed[0]
 		}
-		title := element.ChildText("h2 > span.courseTitle")
-		description := element.ChildText("div.courseDescription")
+		title := TrimAllWhiteSpaces(element.ChildText("h2 > span.courseTitle"))
+		description := TrimAllWhiteSpaces(element.ChildText("div.courseDescription"))
 
 		// course attributes
 		element.ForEach("div.courseAttributes", func(_ int, a *colly.HTMLElement) {
 			if strings.Contains(a.Text, "Instructors") {
-				a.ForEach("a", func(_ int, instructor *colly.HTMLElement) {
+				a.ForEach("a.instructorLink", func(_ int, instructor *colly.HTMLElement) {
 					profileUrl := instructor.Attr("href")
 					name := TrimAllWhiteSpaces(instructor.Text)
 
 					var isPI string
-					splitTag := strings.Split(name, "(")
+					splitTag := strings.Split(name, " (")
 					if len(splitTag) > 1 {
-						if strings.Contains(splitTag[0], "PI") {
+						name = splitTag[0]
+						if strings.Contains(splitTag[1], "PI") {
 							isPI = "Y"
 						} else {
 							isPI = "N"
@@ -76,6 +89,10 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 				})
 			} else if strings.Contains(a.Text, "Last offered") {
 				lastOffered = TrimAllWhiteSpaces(a.Text)
+				if strings.Contains(lastOffered, "UG Reqs: ") {
+					parts := strings.Split(lastOffered, "UG Reqs: ")
+					ugReqs = sanitizeUGReqs(parts[1])
+				}
 			} else {
 				attributes := strings.Split(a.Text, "| ")
 				m := make(map[string]string)
@@ -89,13 +106,13 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 					}
 				}
 				if t, found := m["Terms"]; found {
-					terms = t
+					terms = strings.Split(t, ", ")
 				}
 				if u, found := m["Units"]; found {
 					units = u
 				}
 				if ug, found := m["UG Reqs"]; found {
-					ugReqs = ug
+					ugReqs = sanitizeUGReqs(ug)
 				}
 			}
 		})
@@ -114,7 +131,7 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 			sectionDetails := strings.FieldsFunc(TrimWhiteSpaces(section.ChildText("li.sectionDetails")), f)
 			for _, s := range sectionDetails {
 				s = strings.TrimSpace(s)
-				if s == "ISF" || s == "LEC" || s == "SEM" || s == "LBS" || s == "SEC" || s == "ACT" {
+				if s == "ISF" || s == "LEC" || s == "SEM" || s == "LBS" || s == "SEC" || s == "ACT" || s == "DIS" || s == "PRC" || s == "COL" {
 					sectionType = s
 				} else if strings.Contains(s, "Notes:") {
 					split := strings.Split(s, "Notes:")
@@ -137,11 +154,14 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 		id := xid.New().String()
 
 		courses = append(courses, Course{
-			ID:                id,
-			CourseDept:        dept,
+			Id:                id,
+			Dept:              dept,
+			DeptLongname:      globalDeptMap[dept],
 			CourseNumber:      number,
+			DeptAndNumber:     both,
 			CourseTitle:       title,
 			CourseDescription: description,
+			Level:             level,
 			Terms:             terms,
 			Units:             units,
 			LastOffered:       lastOffered,
@@ -173,15 +193,21 @@ func TrimAllWhiteSpaces(str string) string {
 	return trimWhiteSpace.Replace(str)
 }
 
-func parseCourseNumber(str string) []string {
-	trimColon := strings.NewReplacer(":", "")
-	trimmed := trimColon.Replace(str)
-	splitNumber := strings.Split(trimmed, " ")
-	return splitNumber
+func trimChars(str string) string {
+	re := regexp.MustCompile("[0-9]+")
+	trimmed := re.FindAllString(str, 1)
+	return trimmed[0]
 }
 
-func getDepts() []string {
-	var depts []string
+func sanitizeUGReqs(str string) []string {
+	removedGER := strings.Replace(str, "GER:", "", 1)
+	trimChars := strings.NewReplacer("DB:", "", "-", "", "EC:", "")
+	trimmed := trimChars.Replace(removedGER)
+	return strings.Split(trimmed, ", ")
+}
+
+func getDepts() map[string]string {
+	depts := make(map[string]string)
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("explorecourses.stanford.edu"),
@@ -192,14 +218,28 @@ func getDepts() []string {
 	})
 
 	collector.OnXML("//schools/school/*", func(e *colly.XMLElement) {
+		longname := e.ChildText("//@longname")
 		name := e.ChildText("//@name")
-		depts = append(depts, name)
-
+		depts[name] = longname
 	})
 
 	collector.Visit(dept_endpoint)
 
+	globalDeptMap = depts
 	return depts
+}
+
+func getLevel(num uint32) string {
+	if num < 100 {
+		return "Intro"
+	}
+	if num < 200 {
+		return "Undergrad"
+	}
+	if num < 300 {
+		return "Advanced"
+	}
+	return "Graduate"
 }
 
 func ECGetCoursesByDepartment(pageSize, page uint, dept string) (count int64, courses []Course, err error) {

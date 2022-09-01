@@ -17,6 +17,8 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/antelman107/net-wait-go/wait"
 	"github.com/go-redis/redis/v8"
+
+	"stanford-goose/datasource"
 )
 
 type Course map[string]interface{}
@@ -25,27 +27,35 @@ type Course map[string]interface{}
 type TextSearch struct {
 	ctx  context.Context
 	rdb  *redis.Client
-	vals map[string]Course
+	vals map[string]datasource.Course
 }
 
-func (ts *TextSearch) init(data []Course) error {
+func (ts *TextSearch) init(data []datasource.Course) error {
 	ts.rdb.Do(ts.ctx,
 		"FT.CREATE", "courses", "ON", "JSON", "PREFIX", "1", "course:", "SCHEMA",
-		"$.courseNumber", "AS", "number", "TEXT",
-		"$.courseTitle", "AS", "title", "TEXT",
+		"$.dept", "AS", "dept", "TEXT", "NOSTEM", "WEIGHT", "4",
+		"$.deptLongname", "AS", "deptLongname", "TEXT", "NOSTEM", "WEIGHT", "2",
+		"$.deptAndNumber", "AS", "deptAndNumber", "TEXT", "NOSTEM", "WEIGHT", "6",
+		"$.courseTitle", "AS", "title", "TEXT", "WEIGHT", "2",
 		"$.courseDescription", "AS", "description", "TEXT",
-		"$.terms", "AS", "terms", "TAG",
-		"$.courseInstructors.*.name", "AS", "instructor", "TEXT",
-		"$.ugReqs", "AS", "ugReqs", "TAG",
+		"$.instructors[0].name", "AS", "instructor1", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.instructors[1].name", "AS", "instructor2", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.instructors[2].name", "AS", "instructor3", "TEXT", "NOSTEM", "PHONETIC", "dm:en",
+		"$.level", "AS", "level", "TAG",
+		"$.terms[*]", "AS", "terms", "TAG",
+		"$.ugReqs[*]", "AS", "ugReqs", "TAG",
 	)
 
 	pipe := ts.rdb.Pipeline()
-	ts.vals = make(map[string]Course)
+	ts.vals = make(map[string]datasource.Course)
 	for i, course := range data {
-		id := course["courseNumber"].(string)
+		id := course.Id
 		s, err := json.Marshal(course)
 		if err != nil {
-			return fmt.Errorf("failed to marshal course %v: %v", id, err)
+			return fmt.Errorf("failed to marshal course id %v: %v", id, err)
+		}
+		if _, ok := ts.vals["course:"+id]; ok {
+			return fmt.Errorf("duplicate course id %v", id)
 		}
 		ts.vals["course:"+id] = course
 		pipe.Do(ts.ctx, "JSON.SET", "course:"+id, "$", s)
@@ -87,17 +97,17 @@ func (ts *TextSearch) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		json.NewEncoder(w).Encode(map[string]any{
 			"error": err.Error(),
 		})
 		return
 	}
-	var courses []Course
+	var courses []datasource.Course
 	for _, id := range results {
 		courses = append(courses, ts.vals[id])
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	json.NewEncoder(w).Encode(map[string]any{
 		"count":   count,
 		"courses": courses,
 		"time":    elapsed.Seconds(),
@@ -150,7 +160,7 @@ func Run(uri string, static string, local bool) {
 	log.Printf("Indexing course data...")
 	start := time.Now()
 	if err := ts.init(data); err != nil {
-		log.Fatalf("faild to index data: %v", err)
+		log.Fatalf("failed to index data: %v", err)
 	}
 	log.Printf("Finished indexing data in %v", time.Since(start))
 
@@ -171,7 +181,7 @@ func Run(uri string, static string, local bool) {
 	log.Fatal(http.ListenAndServe(":7500", nil))
 }
 
-func readData(uri string) (data []Course, err error) {
+func readData(uri string) (data []datasource.Course, err error) {
 	var buf []byte
 	if strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
 		resp, err := http.Get(uri)

@@ -1,9 +1,11 @@
-/** @type {import('tailwindcss').Config} */
+const config = {
+  content: ["./frontend/src/**/*.{html,js,svelte,ts}"],
 
-module.exports = {
-  content: ["./frontend/src/**/*.{html,js,react,ts}"],
   theme: {
     extend: {},
   },
+
   plugins: [],
-}
+};
+
+module.exports = config;

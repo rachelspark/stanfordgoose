@@ -2,9 +2,11 @@ package datasource
 
 import (
 	"log"
+	"sort"
 	"sync"
 
 	"github.com/schollz/progressbar/v3"
+	"golang.org/x/exp/slices"
 )
 
 // Download a paginated set of courses over the network, with specified concurrency.
@@ -18,9 +20,6 @@ func paginatedDownload(
 	if err != nil {
 		log.Fatalf("failed to get courses: %v", err)
 	}
-	// if totalCount == 0 {
-	// 	log.Fatalf("no courses found")
-	// }
 
 	var mu sync.Mutex // Protects the courses list.
 	var courses []Course
@@ -48,12 +47,12 @@ func paginatedDownload(
 	wg.Wait()
 
 	initialLen := len(courses)
-	// sort.Slice(courses, func(i, j int) bool {
-	// 	return courses[i].Id < courses[j].Id
-	// })
-	// courses = slices.CompactFunc(courses, func(a, b Course) bool {
-	// 	return a.Id == b.Id
-	// })
+	sort.Slice(courses, func(i, j int) bool {
+		return courses[i].Id < courses[j].Id
+	})
+	courses = slices.CompactFunc(courses, func(a, b Course) bool {
+		return a.Id == b.Id
+	})
 
 	log.Printf("read %v out of %v total courses (%v before compaction)",
 		len(courses), totalCount, initialLen)
@@ -67,8 +66,8 @@ func DownloadCourses() []Course {
 	depts := getDepts()
 	var courses []Course
 
-	for _, dept := range depts {
-		courses = append(courses, paginatedDownload(ECGetCoursesByDepartment, 10, 32, dept)...)
+	for name := range depts {
+		courses = append(courses, paginatedDownload(ECGetCoursesByDepartment, 10, 32, name)...)
 	}
 
 	return courses

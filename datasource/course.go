@@ -2,19 +2,25 @@ package datasource
 
 // JSON object that specifies a course row.
 type Course struct {
-	ID string `json:id`
+	Id string `json:"id"`
 
-	// CourseDept is the abbreviated course department code (ME, CS, AA)
-	CourseDept string `json:"courseDept"`
+	// Dept is the abbreviated course department code (ME, CS, AA)
+	Dept string `json:"dept"`
+
+	DeptLongname string `json:"deptLongname"`
 
 	// CourseNumber is the course number (e.g. 101 in "ME101").
-	CourseNumber string `json:"courseNumber"`
+	CourseNumber uint32 `json:"courseNumber"`
+
+	DeptAndNumber string `json:"deptAndNumber"`
 
 	CourseTitle string `json:"courseTitle"`
 
 	CourseDescription string `json:"courseDescription"`
 
-	Terms string `json:"terms"`
+	Level string `json:"level"`
+
+	Terms []string `json:"terms"`
 
 	Units string `json:"units"`
 
@@ -22,7 +28,7 @@ type Course struct {
 
 	Instructors []Instructor `json:"instructors"`
 
-	UGReqs string `json:"ugReqs"`
+	UGReqs []string `json:"ugReqs"`
 
 	Schedule []ClassSchedule `json:"schedule"`
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -24,6 +25,7 @@ func main() {
 	case "download":
 		var courses []datasource.Course
 		courses = datasource.DownloadCourses()
+		fmt.Printf("Downloaded %v course", len(courses))
 		coursesText, _ := json.Marshal(courses)
 		if err := os.WriteFile("data/courses.json", coursesText, 0644); err != nil {
 			log.Fatalf("failed to write courses.json: %v", err)

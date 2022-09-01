@@ -151,7 +151,7 @@
     <a target="_blank" class="text-buttons" href="https://3jysmfizo7l.typeform.com/to/BQ5rLXna">Send Feedback</a>
   </div>
   {#if learnMoreShown}        
-  <div class="box container max-w-sm text-xs text-center text-gray-300 mt-2">Built in Go and Svelte on an in-memory Redis database, deployed using Fly.io <br><br>  Built with ❤️ by a fellow cardinal frustrated by ExploreCourses <br> This project uses licensed code ported from classes.wtf and its author (Copyright 2022 Eric Zhang) </div>
+  <div class="box container max-w-sm text-xs text-center text-gray-300 mt-2">Built in Go and Svelte on an in-memory Redis database, deployed to the edge using Fly.io <br><br>  Built with ❤️ by a fellow Cardinal frustrated by ExploreCourses <br> This project also uses some code ported from classes.wtf and licensed by its author: Copyright 2022 Eric Zhang </div>
 {/if}
 </div>
   <div class="absolute bottom-0 z-10"><Footer/></div>

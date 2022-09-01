@@ -16,6 +16,8 @@
   import Footer from "./lib/Footer.svelte"
   import { createSearcher, normalizeText } from "./lib/search";
 
+  let learnMore;
+
   let query: string = location.hash ? decodeQueryHash(location.hash) : "";
   $: {
     const newUrl = query
@@ -32,6 +34,8 @@
   const { data, error, search } = createSearcher();
   $: finalQuery = (activeCourses ? "@terms:{Aut | Win | Spr | Sum}" : "") + normalizeText(query);
   $: search(finalQuery);
+
+  let learnMoreShown = false;
 
   // Render courses incrementally in batches of 20 at a time, to avoid slowing
   // down the browser with too many elements at once.
@@ -141,7 +145,15 @@
   {/if}
 
   {#if landing}
-  <div class="flex justify-center text-tiny pt-1"><a target="_blank" href="https://3jysmfizo7l.typeform.com/to/BQ5rLXna">Send Feedback</a></div>
+  <div class="flex flex-col items-center text-tiny">
+  <div class="flex flex-row text-tiny pt-1 gap-x-4">
+    <button class="text-buttons" on:click={() => (learnMoreShown = !learnMoreShown)}>Learn More</button>
+    <a target="_blank" class="text-buttons" href="https://3jysmfizo7l.typeform.com/to/BQ5rLXna">Send Feedback</a>
+  </div>
+  {#if learnMoreShown}        
+  <div class="box container max-w-sm text-xs text-center text-gray-300 mt-2">Built in Go and Svelte on an in-memory Redis database, deployed using Fly.io <br><br>  Built with ❤️ by a fellow cardinal frustrated by ExploreCourses <br> This project uses licensed code ported from classes.wtf and its author (Copyright 2022 Eric Zhang) </div>
+{/if}
+</div>
   <div class="absolute bottom-0 z-10"><Footer/></div>
   {/if}
 </main>
@@ -163,8 +175,8 @@
       @apply min-w-[20ch] text-sm px-3 py-2 pl-10;;
     }
 
-    a {
-      @apply text-xs text-gray-300 underline hover:text-gray-600;
+    .text-buttons {
+      @apply text-xs text-gray-300 underline hover:text-gray-500;
     }
 
   @screen md {
@@ -184,7 +196,7 @@
       @apply w-[50ch] text-base px-3 py-2 pl-10;;
     }
 
-    a {
+    .text-buttons {
       @apply text-gray-300 underline hover:text-gray-600;
     }
   }

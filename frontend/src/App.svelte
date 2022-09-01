@@ -141,7 +141,7 @@
   {/if}
 
   {#if landing}
-  <div class="flex justify-center text-sm pt-1"><a target="_blank" href="https://3jysmfizo7l.typeform.com/to/BQ5rLXna">Send Feedback</a></div>
+  <div class="flex justify-center text-tiny pt-1"><a target="_blank" href="https://3jysmfizo7l.typeform.com/to/BQ5rLXna">Send Feedback</a></div>
   <div class="absolute bottom-0 z-10"><Footer/></div>
   {/if}
 </main>
@@ -177,11 +177,11 @@
     }
 
     .landing p {
-      @apply text-xl text-center text-black mb-10 pb-8;
+      @apply text-xl text-center text-black mb-8 pb-8;
     }
     
     .landing input {
-      @apply w-[45ch] px-3 py-2 pl-10;;
+      @apply w-[50ch] text-base px-3 py-2 pl-10;;
     }
 
     a {

@@ -12,7 +12,7 @@
   
   <style lang="postcss">
     img {
-        @apply bottom-0
+        @apply inline-block bottom-0
     }
   </style>
   

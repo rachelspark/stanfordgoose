@@ -83,35 +83,39 @@
         </p>
       </div>
     {/if}
-
+    <div class="flex flex-col items-center">
     <h1 class="font-bold">
-      <span class="flavor">Explore courses with actually useful results, 100x faster.</span>
+      <span class="flavor">The fastest way to search Stanford courses.</span>
     </h1>
-    <p class="">
-      <span class="flavor">We shouldn't have to chase after courses to take.</span>
+    <p class="container max-w-lg">
+      <span class="flavor">Consider the wild-goose chase of course selection over. Goose gives you more useful results, crazy fast.</span>
     </p>
-    <p class="mb-4">
-      <!-- svelte-ignore a11y-autofocus -->
-      <span class="relative searchbar-wrapper"
+
+      <div class="relative searchbar-wrapper z-10"
         >
+        <div class="flex absolute inset-y-0 left-3 items-center">
           <svg
-            class="w-5 h-5 absolute top-0 left-3 text-gray-400 pointer-events-none"
+            class="w-5 h-5 text-gray-400 pointer-events-none"
             fill="currentColor"
             viewBox="0 0 50 50"
             ><path
               d="M 21 3 C 11.601563 3 4 10.601563 4 20 C 4 29.398438 11.601563 37 21 37 C 24.355469 37 27.460938 36.015625 30.09375 34.34375 L 42.375 46.625 L 46.625 42.375 L 34.5 30.28125 C 36.679688 27.421875 38 23.878906 38 20 C 38 10.601563 30.398438 3 21 3 Z M 21 7 C 28.199219 7 34 12.800781 34 20 C 34 27.199219 28.199219 33 21 33 C 13.800781 33 8 27.199219 8 20 C 8 12.800781 13.800781 7 21 7 Z"
-            /></svg
-          ><input
+            />
+          </svg
+          >
+          </div>
+          <!-- svelte-ignore a11y-autofocus -->
+          <input
           autofocus
-          class="searchbar rounded-full bg-gray-50 hover:bg-gray-100 focus:outline-none border"
-          placeholder={landing ? "I just want to take a class at Stanford about..." : "Search..."}
+          class="searchbar w-full text-md pl-10 rounded-full bg-gray-50 hover:bg-gray-100 focus:outline-none border"
+          placeholder={landing ? "I want to take a class in..." : "Search..."}
           bind:value={query}
-        /></span
+        /></div
       >
-    </p>
+        </div>
 
     {#if !landing}
-    <label class="flex text-sm mb-2 ml-2">
+    <label class="flex text-sm mb-2 ml-2 mt-2">
       <input class="mr-2" type="checkbox" bind:checked={activeCourses} />
       Only show courses offered in 2022-23
     </label>
@@ -137,27 +141,51 @@
   {/if}
 
   {#if landing}
-  <div class="flex justify-center"><a target="_blank" href="https://3jysmfizo7l.typeform.com/to/BQ5rLXna">Send Feedback</a></div>
-  <div class="absolute bottom-0"><Footer/></div>
+  <div class="flex justify-center text-sm pt-1"><a target="_blank" href="https://3jysmfizo7l.typeform.com/to/BQ5rLXna">Send Feedback</a></div>
+  <div class="absolute bottom-0 z-10"><Footer/></div>
   {/if}
 </main>
 
 <style lang="postcss">
-  @screen md {
     .landing {
       @apply flex flex-col justify-center;
     }
 
     .landing h1 {
-      @apply text-center text-4xl text-black mb-8 pt-14 pb-2;
+      @apply text-center text-xl text-black mb-4 pt-6;
     }
 
     .landing p {
-      @apply text-xl text-center text-black mb-12 pb-10;
+      @apply text-base text-center text-black mb-6;
+    }
+    
+    .landing input {
+      @apply min-w-[20ch] text-sm px-3 py-2 pl-10;;
     }
 
+    a {
+      @apply text-xs text-gray-300 underline hover:text-gray-600;
+    }
+
+  @screen md {
+    .landing {
+      @apply flex flex-col justify-center space-y-4;
+    }
+
+    .landing h1 {
+      @apply text-center text-6xl text-black mb-8 pt-14 pb-2;
+    }
+
+    .landing p {
+      @apply text-xl text-center text-black mb-10 pb-8;
+    }
+    
     .landing input {
-      @apply w-full px-3 py-2 pl-10;;
+      @apply w-[45ch] px-3 py-2 pl-10;;
+    }
+
+    a {
+      @apply text-gray-300 underline hover:text-gray-600;
     }
   }
 
@@ -166,13 +194,10 @@
   }
 
   main:not(.landing) .searchbar-wrapper {
-    @apply text-base;
+    @apply text-base w-full;
   }
 
   main:not(.landing) .searchbar {
     @apply w-full px-3 py-2 pl-10;
   }
-  a {
-      @apply text-gray-300 underline hover:text-gray-600;
-    }
 </style>

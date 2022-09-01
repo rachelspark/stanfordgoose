@@ -1,5 +1,4 @@
 <script lang="ts">
-import { includes } from "lodash";
 import type { CourseData } from "./search";
 
     import Tag from "./Tag.svelte"

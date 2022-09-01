@@ -10,11 +10,15 @@ type Course struct {
 	DeptLongname string `json:"deptLongname"`
 
 	// CourseNumber is the course number (e.g. 101 in "ME101").
-	CourseNumber string `json:"courseNumber"`
+	CourseNumber uint32 `json:"courseNumber"`
+
+	DeptAndNumber string `json:"deptAndNumber"`
 
 	CourseTitle string `json:"courseTitle"`
 
 	CourseDescription string `json:"courseDescription"`
+
+	Level string `json:"level"`
 
 	Terms []string `json:"terms"`
 

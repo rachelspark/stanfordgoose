@@ -1,4 +1,5 @@
 <script lang="ts">
+import { includes } from "lodash";
 import type { CourseData } from "./search";
 
     import Tag from "./Tag.svelte"
@@ -12,28 +13,20 @@ import type { CourseData } from "./search";
       "lastOffered" : "lightgray"
     }
 
-    // function getInstructors(data: CourseData) {
-    //   let instructors = data.instructors;
-    //   let instructorsToShow = [];
-    //   let i = 0, j = 0;
+    function renderUgReqs(){
+      let finalReqs = "" 
+      data.ugReqs.forEach( req => {
+        finalReqs += req.replace("WAY", "WAY-") + " ";
+      });
+      return "| " + finalReqs;
+    }
 
-    //   while (i < 3) {
-    //     if (instructors[j].name == "Instructors:" || instructors[j].profileUrl == "#" || instructors[j].isPI != "Y") {
-    //       j++;
-    //     }
-    //     instructorsToShow[i] = instructors[j];
-    //     j++;
-    //     i++;
-    //   }
-    //   return instructorsToShow;
-    // }
   </script>
   
   <div>
     <div class="flex flex-row">
     <h3 class="basis-3/4 text-sm font-bold">
-      {data.dept}
-      {data.courseNumber}:
+      {data.deptAndNumber}:
       {data.courseTitle}
     </h3>
     <div class="basis-1/4">
@@ -53,15 +46,19 @@ import type { CourseData } from "./search";
     <p class="instructors">
       {#if data.instructors}
         {#each data.instructors.slice(0, 3) as instructor, i}
+          {#if !instructor.name.includes("Instructor")}
               <a target="_blank" href= {instructor.profileUrl}>{instructor.name}</a>
-              {#if i == 2 && data.instructors.length > 3} and others{:else}{"  "}{/if}
+          {/if}
+          {#if i == 2 && data.instructors.length > 3} and others{:else}{"  "}
+          {/if}
         {/each}
       {/if}
     </p>
     <p class="text-xs font-light mb-1">
       {#if data.lastOffered == "" && data.units != ""}
-      {(data.units == "1") ? `${data.units} unit`: `${data.units} units`} |
-        {data.ugReqs ?         `${data.ugReqs.join(", ")}` : "No UG Reqs"}
+      {data.level ? `${data.level} |` : ""}
+      {(data.units == "1") ? `${data.units} unit`: `${data.units} units`}
+        {data.ugReqs ?         `${renderUgReqs()}` : ""}
       {/if}
       
     </p>

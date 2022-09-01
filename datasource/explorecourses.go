@@ -2,6 +2,7 @@ package datasource
 
 import (
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -36,18 +37,27 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 
 	collector.OnHTML("div.courseInfo", func(element *colly.HTMLElement) {
 		var dept string
-		var number string
 		var terms []string
+		var number uint32
 		var units string
+		var level string
 		var lastOffered string
 		var instructors []Instructor
 		var ugReqs []string
 		var schedules []ClassSchedule
 
-		parsed := parseCourseNumber(element.ChildText("h2 > span.courseNumber"))
+		both := strings.ReplaceAll(element.ChildText("h2 > span.courseNumber"), ":", "")
+		parsed := strings.Split(both, " ")
 		if len(parsed) > 1 {
 			dept = parsed[0]
-			number = parsed[1]
+			numberString := trimChars(parsed[1])
+			num, err := strconv.ParseInt(numberString, 10, 32)
+			if err != nil {
+				number = 0
+			} else {
+				number = uint32(num)
+			}
+			level = getLevel(number)
 		} else {
 			dept = parsed[0]
 		}
@@ -57,7 +67,7 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 		// course attributes
 		element.ForEach("div.courseAttributes", func(_ int, a *colly.HTMLElement) {
 			if strings.Contains(a.Text, "Instructors") {
-				a.ForEach("a", func(_ int, instructor *colly.HTMLElement) {
+				a.ForEach("a.instructorLink", func(_ int, instructor *colly.HTMLElement) {
 					profileUrl := instructor.Attr("href")
 					name := TrimAllWhiteSpaces(instructor.Text)
 
@@ -148,8 +158,10 @@ func ecRawSearch(search string, courses []Course) (int64, []Course, error) {
 			Dept:              dept,
 			DeptLongname:      globalDeptMap[dept],
 			CourseNumber:      number,
+			DeptAndNumber:     both,
 			CourseTitle:       title,
 			CourseDescription: description,
+			Level:             level,
 			Terms:             terms,
 			Units:             units,
 			LastOffered:       lastOffered,
@@ -181,16 +193,17 @@ func TrimAllWhiteSpaces(str string) string {
 	return trimWhiteSpace.Replace(str)
 }
 
-func parseCourseNumber(str string) []string {
-	trimColon := strings.NewReplacer(":", "")
-	trimmed := trimColon.Replace(str)
-	splitNumber := strings.Split(trimmed, " ")
-	return splitNumber
+func trimChars(str string) string {
+	re := regexp.MustCompile("[0-9]+")
+	trimmed := re.FindAllString(str, 1)
+	return trimmed[0]
 }
 
 func sanitizeUGReqs(str string) []string {
 	removedGER := strings.Replace(str, "GER:", "", 1)
-	return strings.Split(removedGER, ", ")
+	trimChars := strings.NewReplacer("DB:", "", "-", "", "EC:", "")
+	trimmed := trimChars.Replace(removedGER)
+	return strings.Split(trimmed, ", ")
 }
 
 func getDepts() map[string]string {
@@ -214,6 +227,19 @@ func getDepts() map[string]string {
 
 	globalDeptMap = depts
 	return depts
+}
+
+func getLevel(num uint32) string {
+	if num < 100 {
+		return "Intro"
+	}
+	if num < 200 {
+		return "Undergrad"
+	}
+	if num < 300 {
+		return "Advanced"
+	}
+	return "Graduate"
 }
 
 func ECGetCoursesByDepartment(pageSize, page uint, dept string) (count int64, courses []Course, err error) {

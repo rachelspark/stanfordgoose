@@ -4,9 +4,11 @@ export type CourseData = {
   id: string;
   dept: string;
   deptLongname: string
-  courseNumber: string;
+  courseNumber: number;
+  deptAndNumber: string;
   courseTitle: string;
   courseDescription: string;
+  level: string,
   terms: string[];
   units: string;
   lastOffered: string
@@ -74,7 +76,7 @@ export function createSearcher(): Searcher {
 
 /** Apply some transformations to a query to make it more useful by default. */
 export function normalizeText(query: string): string {
-  query = query.replaceAll("-", " "); // dash syntax is too confusing for users
+  query = query.replaceAll("-", ""); // dash syntax is too confusing for users
   query = query.replaceAll(/[–—…«»‘’]/g, " "); // trim special unicode punctuation
   query = query.replaceAll(/[“”]/g, '"'); // make smart quotes less smart
 

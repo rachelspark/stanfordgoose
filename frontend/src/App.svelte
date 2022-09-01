@@ -72,9 +72,14 @@
         </p>
         <p>
           Filter by specific attributes like
-          <QueryLink bind:query value={`@dept:CS`} />, 
-          <QueryLink bind:query value={`@ugReqs:{WAY-ER}`} />,
-          <QueryLink bind:query value={`@terms:{Aut}`} />
+          <QueryLink bind:query value={`@dept:"CS"`} />, 
+          <QueryLink bind:query value={`@terms:{Aut}`} />,
+          <QueryLink bind:query value={`@ugReqs:{WAY-EDP}`} />, and
+          <QueryLink bind:query value={`@level:{Intro}`} />.
+        </p>
+        <p>
+          You can also combine filters. For example, let's say this fall or spring I want to fulfill my WAY-ER or WAY-A-II with a course about media:
+          <QueryLink bind:query value={`@terms:{Aut | Spr} @ugReqs:{WAY-A-II | WAY-ER} media`} />
         </p>
       </div>
     {/if}
